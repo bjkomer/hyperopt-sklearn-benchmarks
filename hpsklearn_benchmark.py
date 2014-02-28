@@ -74,7 +74,8 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
                    filename = 'none.out' ):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
-                              preprocessing=[], max_evals=max_evals )
+                              preprocessing=[], max_evals=max_evals,
+                              trial_timeout=300 )
 
   digits = fetch_mldata('MNIST original')
 
@@ -100,7 +101,7 @@ def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
                     filename = 'none.out' ):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
-                              max_evals=max_evals, trial_timeout=15 )
+                              max_evals=max_evals, trial_timeout=300 )
 
   dataset_store.download('convex')
   trainset,validset,testset = dataset_store.get_classification_problem('convex')
