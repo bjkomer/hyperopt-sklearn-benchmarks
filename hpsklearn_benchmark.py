@@ -6,7 +6,11 @@ from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
-import mlpython.datasets.store as dataset_store
+try:
+  import mlpython.datasets.store as dataset_store
+  CONVEX_EXISTS=True
+except:
+  CONVEX_EXISTS=False
 
 from sklearn import metrics
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -153,7 +157,10 @@ def find_model( X_train, y_train, X_test, y_test, estim, filename ):
     f.write( repr( estim.best_model() ) )
     f.write( "\nValidation loss at each step\n" )
     for result in estim.trials.results:
-      f.write(str(result['loss'])+'\n')
+      try:
+        f.write(str(result['loss'])+'\n')
+      except:
+        f.write("ERROR\n")
 
 
 
@@ -203,8 +210,12 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any', text='' )
     sklearn_newsgroups( classifier=classifier, algorithm=algorithm, 
                         max_evals=evals, seed=seed, filename=filename)
   elif data == 'convex':
-    sklearn_convex( classifier=classifier, algorithm=algorithm, 
-                        max_evals=evals, seed=seed, filename=filename)
+    if CONVEX_EXISTS:
+      sklearn_convex( classifier=classifier, algorithm=algorithm, 
+                          max_evals=evals, seed=seed, filename=filename)
+    else:
+      print("Convex dataset not detected on your system, install from MLPython")
+      return 1
   elif data == 'mnist':
     sklearn_mnist( classifier=classifier, algorithm=algorithm, 
                         max_evals=evals, seed=seed, filename=filename)
