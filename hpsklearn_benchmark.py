@@ -22,6 +22,8 @@ import argparse
 REMOVE_HEADERS=False
 # use the default settings up TfidfVectorizer before doing optimization
 PRE_VECTORIZE=False
+# Record the test score for every evaluation point
+#TEST_ALL_EVALS=True
 
 def score( y1, y2 ):
   length = len( y1 )
@@ -33,11 +35,14 @@ def score( y1, y2 ):
 
 # TODO: currently does not use seed for anything
 def sklearn_newsgroups( classifier, algorithm, max_evals=100, seed=1,
-                        filename='none.out'):
+                        filename='none'):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=[tfidf('tfidf')],
-                              max_evals=max_evals, trial_timeout=300 )
+                              max_evals=max_evals, trial_timeout=300,
+                              fit_increment_dump_filename=filename+'.dump')
+  
+  filename = filename + '.out'
   
   if REMOVE_HEADERS:
     train = fetch_20newsgroups( subset='train', 
@@ -71,11 +76,13 @@ def sklearn_newsgroups( classifier, algorithm, max_evals=100, seed=1,
   find_model( X_train, y_train, X_test, y_test, estim, filename )
 
 def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
-                   filename = 'none.out' ):
+                   filename = 'none' ):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
-                              preprocessing=[], max_evals=max_evals,
-                              trial_timeout=300 )
+                              max_evals=max_evals, trial_timeout=300,
+                              fit_increment_dump_filename=filename+'.dump')
+  
+  filename = filename + '.out'
 
   digits = fetch_mldata('MNIST original')
 
@@ -98,10 +105,13 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
   find_model( X_train, y_train, X_test, y_test, estim, filename )
 
 def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
-                    filename = 'none.out' ):
+                    filename = 'none' ):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
-                              max_evals=max_evals, trial_timeout=300 )
+                              max_evals=max_evals, trial_timeout=300,
+                              fit_increment_dump_filename=filename+'.dump')
+  
+  filename = filename + '.out'
 
   dataset_store.download('convex')
   trainset,validset,testset = dataset_store.get_classification_problem('convex')
@@ -136,16 +146,20 @@ def find_model( X_train, y_train, X_test, y_test, estim, filename ):
   print( "Model:" )
   print( estim.best_model() )
   
-  f = open( filename, 'w' )
-  f.write( "Accuracy: " + str( score( pred, y_test ) ) + "\n")
-  f.write( "F1 Score: " + str( metrics.f1_score( pred, y_test ) ) + "\n")
-  f.write( "Model: \n" )
-  f.write( repr( estim.best_model() ) )
-  f.close()
+  with open( filename, 'w' ) as f:
+    f.write( "Accuracy: " + str( score( pred, y_test ) ) + "\n")
+    f.write( "F1 Score: " + str( metrics.f1_score( pred, y_test ) ) + "\n")
+    f.write( "Model: \n" )
+    f.write( repr( estim.best_model() ) )
+    f.write( "\nValidation loss at each step\n" )
+    for result in estim.trials.results:
+      f.write(str(result['loss'])+'\n')
+
+
 
 def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any', text='' ):
   filename = text + algo + '_' + clf + '_' + str(seed) + '_' + str(evals) + \
-             '_' + data + '.out'
+             '_' + data
   
   if algo == 'tpe':
     algorithm = tpe.suggest
