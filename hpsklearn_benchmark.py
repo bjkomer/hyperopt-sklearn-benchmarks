@@ -2,7 +2,7 @@
 from hpsklearn.estimator import hyperopt_estimator
 from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
                                  knn, sgd, tfidf, random_forest, extra_trees, \
-                                 liblinear_svc, multinomial_nb
+                                 liblinear_svc, multinomial_nb, rbm, colkmeans
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
@@ -93,7 +93,6 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
   X = digits.data
   y = digits.target
 
-  # TODO: put in option for cross-validation?
   test_size = int( 0.2 * len( y ) )
   np.random.seed( seed )
   indices = np.random.permutation(len(X))
@@ -202,6 +201,10 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any', text='' )
     classifier = liblinear_svc('clf') 
   elif clf == 'multinomial_nb':
     classifier = multinomial_nb('clf') 
+  elif clf == 'rbm':
+    classifier = rbm('clf') 
+  elif clf == 'colkmeans':
+    classifier = colkmeans('clf') 
   else:
     print( 'Unknown classifier specified' )
     return 1
