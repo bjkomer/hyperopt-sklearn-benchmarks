@@ -2,7 +2,8 @@
 from hpsklearn.estimator import hyperopt_estimator
 from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
                                  knn, sgd, tfidf, random_forest, extra_trees, \
-                                 liblinear_svc, multinomial_nb, rbm, colkmeans
+                                 liblinear_svc, multinomial_nb, rbm, colkmeans,\
+                                 pca, min_max_scaler
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
@@ -28,6 +29,12 @@ REMOVE_HEADERS=False
 PRE_VECTORIZE=False
 # Record the test score for every evaluation point
 #TEST_ALL_EVALS=True
+  
+optional_pca = hp.pchoice('preproc', [
+  ( 0.8, [pca('pca')]),
+  ( 0.1, [min_max_scaler('mms')]),
+  ( 0.1, [] ) ])
+  
 
 def score( y1, y2 ):
   length = len( y1 )
@@ -83,6 +90,7 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
                    filename = 'none' ):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
+                              preprocessing=optional_pca,
                               max_evals=max_evals, trial_timeout=300,
                               fit_increment_dump_filename=filename+'.dump')
   
@@ -110,7 +118,9 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
 def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
                     filename = 'none' ):
 
+  
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
+                              preprocessing=optional_pca,
                               max_evals=max_evals, trial_timeout=300,
                               fit_increment_dump_filename=filename+'.dump')
   
