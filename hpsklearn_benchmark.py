@@ -101,7 +101,8 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
   X = digits.data
   y = digits.target
 
-  test_size = int( 0.2 * len( y ) )
+  #test_size = int( 0.2 * len( y ) )
+  test_size = 10000
   np.random.seed( seed )
   indices = np.random.permutation(len(X))
   X_train = X[ indices[:-test_size]]
@@ -138,11 +139,15 @@ def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
   X_test = testset.data.mem_data[0]
   y_test = testset.data.mem_data[1]
 
+  X_fulltrain = np.concatenate((X_train, X_valid))
+  y_fulltrain = np.concatenate((y_train, y_valid))
+
   print(y_train.shape)
   print(y_valid.shape)
   print(y_test.shape)
   
-  find_model( X_train, y_train, X_test, y_test, estim, filename )
+  #find_model( X_train, y_train, X_test, y_test, estim, filename )
+  find_model( X_fulltrain, y_fulltrain, X_test, y_test, estim, filename )
   
 def find_model( X_train, y_train, X_test, y_test, estim, filename ):
 
