@@ -182,7 +182,7 @@ def find_model( X_train, y_train, X_test, y_test, estim, filename ):
 def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
           pre='any', text='' ):
   filename = text + algo + '_' + clf + '_' + str(seed) + '_' + str(evals) + \
-             '_' + data
+             '_' + pre + '_' + data
   
   if algo == 'tpe':
     algorithm = tpe.suggest
