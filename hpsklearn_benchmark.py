@@ -3,7 +3,8 @@ from hpsklearn.estimator import hyperopt_estimator
 from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
                                  knn, sgd, tfidf, random_forest, extra_trees, \
                                  liblinear_svc, multinomial_nb, rbm, colkmeans,\
-                                 pca, min_max_scaler
+                                 pca, min_max_scaler, normalizer,\
+                                 standard_scaler
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
@@ -46,7 +47,7 @@ def score( y1, y2 ):
 
 # TODO: currently does not use seed for anything
 def sklearn_newsgroups( classifier, algorithm, max_evals=100, seed=1,
-                        filename='none'):
+                        filename='none', preproc=[] ):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=[tfidf('tfidf')],
@@ -87,10 +88,10 @@ def sklearn_newsgroups( classifier, algorithm, max_evals=100, seed=1,
   find_model( X_train, y_train, X_test, y_test, estim, filename )
 
 def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
-                   filename = 'none' ):
+                   filename = 'none', preproc=[] ):
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
-                              preprocessing=optional_pca,
+                              preprocessing=preproc,
                               max_evals=max_evals, trial_timeout=300,
                               fit_increment_dump_filename=filename+'.dump')
   
@@ -117,11 +118,11 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
   find_model( X_train, y_train, X_test, y_test, estim, filename )
 
 def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
-                    filename = 'none' ):
+                    filename = 'none', preproc=[] ):
 
   
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
-                              preprocessing=optional_pca,
+                              preprocessing=preproc,
                               max_evals=max_evals, trial_timeout=300,
                               fit_increment_dump_filename=filename+'.dump')
   
@@ -178,7 +179,8 @@ def find_model( X_train, y_train, X_test, y_test, estim, filename ):
 
 
 
-def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any', text='' ):
+def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
+          pre='any', text='' ):
   filename = text + algo + '_' + clf + '_' + str(seed) + '_' + str(evals) + \
              '_' + data
   
@@ -224,19 +226,38 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any', text='' )
     print( 'Unknown classifier specified' )
     return 1
   
+  if pre == 'any':
+    if data in ['newsgroups']:
+      preproc = [any_text_preprocessing('pre')]
+    else:
+      preproc = [any_preprocessing('pre')]
+  elif pre == 'pca':
+    preproc = [pca('pre')]
+  elif pre == 'standard_scaler':
+    preproc = [standard_scaler('pre')]
+  elif pre == 'min_max_scaler':
+    preproc = [min_max_scaler('pre')]
+  elif pre == 'normalizer':
+    preproc = [normalizer('pre')]
+  elif pre == 'none':
+    preproc = []
+
   if data == 'newsgroups':
     sklearn_newsgroups( classifier=classifier, algorithm=algorithm, 
-                        max_evals=evals, seed=seed, filename=filename)
+                        max_evals=evals, seed=seed, filename=filename,
+                        preproc=preproc )
   elif data == 'convex':
     if CONVEX_EXISTS:
       sklearn_convex( classifier=classifier, algorithm=algorithm, 
-                          max_evals=evals, seed=seed, filename=filename)
+                      max_evals=evals, seed=seed, filename=filename,
+                      preproc=preproc )
     else:
       print("Convex dataset not detected on your system, install from MLPython")
       return 1
   elif data == 'mnist':
     sklearn_mnist( classifier=classifier, algorithm=algorithm, 
-                        max_evals=evals, seed=seed, filename=filename)
+                   max_evals=evals, seed=seed, filename=filename,
+                   preproc=preproc )
   else:
     print( "Unknown dataset specified" )
 
@@ -252,6 +273,8 @@ if __name__ == "__main__":
                       help='optimization algorithm to use, one of: [rand, anneal, tpe, tree, gp_tree]')
   parser.add_argument('--clf', '-c', dest='clf', default='any',
                       help='classifier to use')
+  parser.add_argument('--pre', '-p', dest='pre', default='any',
+                      help='preprocessing to use')
   parser.add_argument('--seed', '-s', dest='seed', default=1,
                       help='random seed to use')
   parser.add_argument('--evals', '-e', dest='evals', default=100,
@@ -262,4 +285,4 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   main( data=args.data, algo=args.algo, clf=args.clf, seed=int(args.seed),
-        evals=int(args.evals), text=args.text )
+        evals=int(args.evals), text=args.text, pre=args.pre )
