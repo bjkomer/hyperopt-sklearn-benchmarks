@@ -4,7 +4,8 @@ from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
                                  knn, sgd, tfidf, random_forest, extra_trees, \
                                  liblinear_svc, multinomial_nb, rbm, colkmeans,\
                                  pca, min_max_scaler, normalizer,\
-                                 standard_scaler
+                                 standard_scaler, any_preprocessing,\
+                                 any_text_preprocessing
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
@@ -51,7 +52,7 @@ def sklearn_newsgroups( classifier, algorithm, max_evals=100, seed=1,
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=[tfidf('tfidf')],
-                              max_evals=max_evals, trial_timeout=300,
+                              max_evals=max_evals, trial_timeout=240,
                               fit_increment_dump_filename=filename+'.dump')
   
   filename = filename + '.out'
@@ -92,7 +93,7 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=preproc,
-                              max_evals=max_evals, trial_timeout=300,
+                              max_evals=max_evals, trial_timeout=240,
                               fit_increment_dump_filename=filename+'.dump')
   
   filename = filename + '.out'
@@ -123,7 +124,7 @@ def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
   
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=preproc,
-                              max_evals=max_evals, trial_timeout=300,
+                              max_evals=max_evals, trial_timeout=240,
                               fit_increment_dump_filename=filename+'.dump')
   
   filename = filename + '.out'
@@ -228,9 +229,9 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
   
   if pre == 'any':
     if data in ['newsgroups']:
-      preproc = [any_text_preprocessing('pre')]
+      preproc = any_text_preprocessing('pre')
     else:
-      preproc = [any_preprocessing('pre')]
+      preproc = any_preprocessing('pre')
   elif pre == 'pca':
     preproc = [pca('pre')]
   elif pre == 'standard_scaler':
