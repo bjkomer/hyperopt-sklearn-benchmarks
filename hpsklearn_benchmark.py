@@ -23,6 +23,8 @@ from hyperopt import fmin, tpe, anneal, rand, hp
 import hypertree.gp_tree
 import hypertree.tree
 
+import time
+
 import argparse
 
 # remove headers, footers, and citations from 20 newsgroups data
@@ -154,7 +156,10 @@ def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
 def find_model( X_train, y_train, X_test, y_test, estim, filename ):
 
   # The fit function does splitting into training and test sets
+  before = time.time()
   estim.fit( X_train, y_train )
+  after = time.time()
+  elapsed = after - before
 
   pred = estim.predict( X_test )
 
@@ -162,21 +167,24 @@ def find_model( X_train, y_train, X_test, y_test, estim, filename ):
   print( score( pred, y_test ) ) 
   print( "F1 Score:" )
   print( metrics.f1_score( pred, y_test ) )
+  print( "Time:" )
+  print( elapsed )
 
   print( "Model:" )
   print( estim.best_model() )
   
   with open( filename, 'w' ) as f:
-    f.write( "Accuracy: " + str( score( pred, y_test ) ) + "\n")
-    f.write( "F1 Score: " + str( metrics.f1_score( pred, y_test ) ) + "\n")
+    f.write( "Accuracy: " + str( score( pred, y_test ) ) + "\n" )
+    f.write( "F1 Score: " + str( metrics.f1_score( pred, y_test ) ) + "\n" )
+    f.write( "Time: " + str( elapsed ) + "\n" )
     f.write( "Model: \n" )
     f.write( repr( estim.best_model() ) )
     f.write( "\nValidation loss at each step\n" )
     for result in estim.trials.results:
       try:
-        f.write(str(result['loss'])+'\n')
+        f.write( str( result['loss'] )+'\n' )
       except:
-        f.write("ERROR\n")
+        f.write( "ERROR\n" )
 
 
 

@@ -8,6 +8,8 @@ clf_dict = {"svc":{},
             "knn":{},
             "sgd":{},
             "multinomial_nb":{},
+            "extra_trees":{},
+            "random_forest":{},
             "any":{}}
 
 algo_dict = {"tpe":copy.deepcopy(clf_dict),
@@ -17,7 +19,7 @@ algo_dict = {"tpe":copy.deepcopy(clf_dict),
              "rand":copy.deepcopy(clf_dict)}
 
 datasets = [ "newsgroups", "convex", "mnist" ]
-clfs = [ "svc", "knn", "sgd", "multinomial_nb", "any" ]
+clfs = [ "svc", "knn", "sgd", "multinomial_nb", "extra_trees", "random_forest", "any" ]
 algos = [ "tpe", "anneal", "rand", "gp_tree", "tree" ]
 
 def extract_tags( f ):
