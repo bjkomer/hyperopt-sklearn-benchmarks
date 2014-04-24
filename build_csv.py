@@ -41,6 +41,11 @@ def extract_tags( f ):
       break
 
   evals = f.split("_")[-2]
+  # Workaround for files with incorrect name format
+  try:
+    int(evals)
+  except:
+    evals = f.split("_")[-3]
 
   return dataset, algo, clf, evals
 
@@ -72,7 +77,7 @@ def main( files ):
       for akey, a in d.iteritems():
         for ckey, c in a.iteritems():
           for ekey, e in c.iteritems():
-            writer.writerow([dkey]+[akey]+[ckey]+e)
+            writer.writerow([dkey]+[akey]+[ckey]+[ekey]+e)
 
 if __name__ == "__main__":
   main( sys.argv[1:] )
