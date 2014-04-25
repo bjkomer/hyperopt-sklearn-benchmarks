@@ -79,5 +79,108 @@ def main( files ):
           for ekey, e in c.iteritems():
             writer.writerow([dkey]+[akey]+[ckey]+[ekey]+e)
 
+def classifier_chosen( files ):
+  """
+  This script takes a list of result files, and creates a csv file organizing
+  those results, showing which classifiers were chosen
+  """
+  results = {"newsgroups":copy.deepcopy(algo_dict),
+             "convex":copy.deepcopy(algo_dict),
+             "mnist":copy.deepcopy(algo_dict)}
+
+  for f in files:
+    dataset, algo, clf, evals = extract_tags( f )
+    d = open( f, 'r' )
+    d.readline()
+    d.readline()
+    d.readline()
+    clf_line = d.readline()
+    # Some files have an extra timing line
+    if "Model:" in clf_line:
+      clf_line = d.readline()
+
+    if "KNeighborsClassifier" in clf_line:
+      clfn = "knn"
+    elif "SGDClassifier" in clf_line:
+      clfn = "sgd"
+    elif "ExtraTreesClassifier" in clf_line:
+      clfn = "extra_trees"
+    elif "MultinomialNB" in clf_line:
+      clfn = "multinomial_nb"
+    elif "RandomForestClassifier" in clf_line:
+      clfn = "random_forest"
+    elif "SVC" in clf_line:
+      clfn = "svc"
+    else:
+      clfn = "unknown"
+
+    print(clfn)
+    d.close()
+    if evals in results[dataset][algo][clf].keys():
+      results[dataset][algo][clf][evals].append(clfn)
+    else:
+      results[dataset][algo][clf][evals] = [clfn]
+
+  with open('results.csv', 'wb') as csvfile:
+    writer = csv.writer( csvfile, delimiter=',')
+    for dkey, d in results.iteritems():
+      for akey, a in d.iteritems():
+        for ckey, c in a.iteritems():
+          for ekey, e in c.iteritems():
+            writer.writerow([dkey]+[akey]+[ckey]+[ekey]+e)
+
+def classifier_and_score( files ):
+  """
+  This script takes a list of result files, and creates a csv file organizing
+  those results, showing which classifiers were chosen
+  """
+  results = {"newsgroups":copy.deepcopy(algo_dict),
+             "convex":copy.deepcopy(algo_dict),
+             "mnist":copy.deepcopy(algo_dict)}
+
+  for f in files:
+    dataset, algo, clf, evals = extract_tags( f )
+    d = open( f, 'r' )
+    d.readline()
+    f1_str = d.readline()
+    f1 = re.findall(r"[-+]?\d*\.\d+|\d+", f1_str)[1]
+    d.readline()
+    clf_line = d.readline()
+    # Some files have an extra timing line
+    if "Model:" in clf_line:
+      clf_line = d.readline()
+
+    if "KNeighborsClassifier" in clf_line:
+      clfn = "knn"
+    elif "SGDClassifier" in clf_line:
+      clfn = "sgd"
+    elif "ExtraTreesClassifier" in clf_line:
+      clfn = "extra_trees"
+    elif "MultinomialNB" in clf_line:
+      clfn = "multinomial_nb"
+    elif "RandomForestClassifier" in clf_line:
+      clfn = "random_forest"
+    elif "SVC" in clf_line:
+      clfn = "svc"
+    else:
+      clfn = "unknown"
+
+    print(f1 + " : " + clfn)
+    d.close()
+    if evals in results[dataset][algo][clf].keys():
+      results[dataset][algo][clf][evals].append(f1 + " : " + clfn)
+    else:
+      results[dataset][algo][clf][evals] = [f1 + " : " + clfn]
+
+  with open('results.csv', 'wb') as csvfile:
+    writer = csv.writer( csvfile, delimiter=',')
+    for dkey, d in results.iteritems():
+      for akey, a in d.iteritems():
+        for ckey, c in a.iteritems():
+          for ekey, e in c.iteritems():
+            writer.writerow([dkey]+[akey]+[ckey]+[ekey]+e)
+
 if __name__ == "__main__":
-  main( sys.argv[1:] )
+  #main( sys.argv[1:] )
+  #classifier_chosen( sys.argv[1:] )
+  classifier_and_score( sys.argv[1:] )
