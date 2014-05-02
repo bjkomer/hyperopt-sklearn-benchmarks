@@ -9,6 +9,7 @@ from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
+from sklearn.datasets import load_digits
 try:
   import mlpython.datasets.store as dataset_store
   CONVEX_EXISTS=True
@@ -107,6 +108,35 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
 
   #test_size = int( 0.2 * len( y ) )
   test_size = 10000
+  np.random.seed( seed )
+  indices = np.random.permutation(len(X))
+  X_train = X[ indices[:-test_size]]
+  y_train = y[ indices[:-test_size]]
+  X_test = X[ indices[-test_size:]]
+  y_test = y[ indices[-test_size:]]
+
+
+  print(y_train.shape)
+  print(y_test.shape)
+  
+  find_model( X_train, y_train, X_test, y_test, estim, filename )
+
+def sklearn_digits( classifier, algorithm, max_evals=100, seed=1,
+                    filename = 'none', preproc=[] ):
+
+  estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
+                              preprocessing=preproc,
+                              max_evals=max_evals, trial_timeout=60,
+                              fit_increment_dump_filename=filename+'.dump')
+  
+  filename = filename + '.out'
+
+  digits = load_digits()
+
+  X = digits.data
+  y = digits.target
+
+  test_size = int( 0.2 * len( y ) )
   np.random.seed( seed )
   indices = np.random.permutation(len(X))
   X_train = X[ indices[:-test_size]]
@@ -267,6 +297,10 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
     sklearn_mnist( classifier=classifier, algorithm=algorithm, 
                    max_evals=evals, seed=seed, filename=filename,
                    preproc=preproc )
+  elif data == 'digits':
+    sklearn_digits( classifier=classifier, algorithm=algorithm, 
+                    max_evals=evals, seed=seed, filename=filename,
+                    preproc=preproc )
   else:
     print( "Unknown dataset specified" )
 
