@@ -3,6 +3,7 @@ from hpsklearn.estimator import hyperopt_estimator
 from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
                                  knn, sgd, tfidf, random_forest, extra_trees, \
                                  liblinear_svc, multinomial_nb, rbm, colkmeans,\
+                                 nearest_centroid, \
                                  pca, min_max_scaler, normalizer,\
                                  standard_scaler, any_preprocessing,\
                                  any_text_preprocessing
@@ -21,8 +22,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
 from hyperopt import fmin, tpe, anneal, rand, hp
-import hypertree.gp_tree
-import hypertree.tree
+try:
+  import hypertree.gp_tree
+  import hypertree.tree
+except:
+  HYPERTREE_EXISTS=False
 
 import time
 
@@ -257,6 +261,8 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
     classifier = liblinear_svc('clf') 
   elif clf == 'multinomial_nb':
     classifier = multinomial_nb('clf') 
+  elif clf == 'nearest_centroid':
+    classifier = nearest_centroid('clf') 
   elif clf == 'rbm':
     classifier = rbm('clf') 
   elif clf == 'colkmeans':
