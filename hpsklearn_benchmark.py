@@ -250,7 +250,10 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
   elif clf == 'svc':
     classifier = svc('clf') 
   elif clf == 'knn':
-    classifier = knn('clf') 
+    if data in ['newsgroups']:
+      classifier = knn('clf', sparse_data=True) 
+    else:
+      classifier = knn('clf') 
   elif clf == 'sgd':
     classifier = sgd('clf') 
   elif clf == 'random_forest':
@@ -262,7 +265,10 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
   elif clf == 'multinomial_nb':
     classifier = multinomial_nb('clf') 
   elif clf == 'nearest_centroid':
-    classifier = nearest_centroid('clf') 
+    if data in ['newsgroups']:
+      classifier = nearest_centroid('clf', sparse_data=True) 
+    else:
+      classifier = nearest_centroid('clf') 
   elif clf == 'rbm':
     classifier = rbm('clf') 
   elif clf == 'colkmeans':
@@ -284,6 +290,8 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
     preproc = [min_max_scaler('pre')]
   elif pre == 'normalizer':
     preproc = [normalizer('pre')]
+  elif pre == 'tfidf':
+    preproc = [tfidf('pre')]
   elif pre == 'none':
     preproc = []
 
