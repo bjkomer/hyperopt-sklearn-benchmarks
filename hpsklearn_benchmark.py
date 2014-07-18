@@ -11,6 +11,7 @@ from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
 from sklearn.datasets import load_digits
+
 try:
   import mlpython.datasets.store as dataset_store
   CONVEX_EXISTS=True
@@ -38,13 +39,14 @@ REMOVE_HEADERS=False
 PRE_VECTORIZE=False
 # Record the test score for every evaluation point
 #TEST_ALL_EVALS=True
-  
+
+suppress_output = False
+
 optional_pca = hp.pchoice('preproc', [
   ( 0.8, [pca('pca')]),
   ( 0.1, [min_max_scaler('mms')]),
   ( 0.1, [] ) ])
-  
-
+ 
 def score( y1, y2 ):
   length = len( y1 )
   correct = 0.0
@@ -55,12 +57,19 @@ def score( y1, y2 ):
 
 # TODO: currently does not use seed for anything
 def sklearn_newsgroups( classifier, algorithm, max_evals=100, seed=1,
-                        filename='none', preproc=[] ):
+                        filename='none', preproc=[], loss=None ):
+
+  global suppress_output
+  if suppress_output:
+    dump_file = None
+  else:
+    dump_file = filename+'.dump'
 
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=[tfidf('tfidf')],
                               max_evals=max_evals, trial_timeout=240,
-                              fit_increment_dump_filename=filename+'.dump')
+                              fit_increment_dump_filename=dump_file,
+                              loss_fn=loss)
   
   filename = filename + '.out'
   
@@ -96,12 +105,19 @@ def sklearn_newsgroups( classifier, algorithm, max_evals=100, seed=1,
   find_model( X_train, y_train, X_test, y_test, estim, filename )
 
 def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
-                   filename = 'none', preproc=[] ):
+                   filename = 'none', preproc=[], loss=None ):
 
+  global suppress_output
+  if suppress_output:
+    dump_file = None
+  else:
+    dump_file = filename+'.dump'
+  
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=preproc,
                               max_evals=max_evals, trial_timeout=240,
-                              fit_increment_dump_filename=filename+'.dump')
+                              fit_increment_dump_filename=dump_file,
+                              loss_fn=loss)
   
   filename = filename + '.out'
 
@@ -126,12 +142,19 @@ def sklearn_mnist( classifier, algorithm, max_evals=100, seed=1,
   find_model( X_train, y_train, X_test, y_test, estim, filename )
 
 def sklearn_digits( classifier, algorithm, max_evals=100, seed=1,
-                    filename = 'none', preproc=[] ):
+                    filename = 'none', preproc=[], loss=None ):
 
+  global suppress_output
+  if suppress_output:
+    dump_file = None
+  else:
+    dump_file = filename+'.dump'
+  
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=preproc,
                               max_evals=max_evals, trial_timeout=60,
-                              fit_increment_dump_filename=filename+'.dump')
+                              fit_increment_dump_filename=dump_file,
+                              loss_fn=loss)
   
   filename = filename + '.out'
 
@@ -155,13 +178,20 @@ def sklearn_digits( classifier, algorithm, max_evals=100, seed=1,
   find_model( X_train, y_train, X_test, y_test, estim, filename )
 
 def sklearn_convex( classifier, algorithm, max_evals=100, seed=1,
-                    filename = 'none', preproc=[] ):
+                    filename = 'none', preproc=[], loss=None ):
 
+  
+  global suppress_output
+  if suppress_output:
+    dump_file = None
+  else:
+    dump_file = filename+'.dump'
   
   estim = hyperopt_estimator( classifier=classifier, algo=algorithm,
                               preprocessing=preproc,
                               max_evals=max_evals, trial_timeout=240,
-                              fit_increment_dump_filename=filename+'.dump')
+                              fit_increment_dump_filename=dump_file,
+                              loss_fn=loss)
   
   filename = filename + '.out'
 
@@ -197,6 +227,7 @@ def find_model( X_train, y_train, X_test, y_test, estim, filename ):
 
   pred = estim.predict( X_test )
 
+  # TODO: record the specific loss type that is specified by the user
   print( "Accuracy:" )
   print( score( pred, y_test ) ) 
   print( "F1 Score:" )
@@ -206,27 +237,36 @@ def find_model( X_train, y_train, X_test, y_test, estim, filename ):
 
   print( "Model:" )
   print( estim.best_model() )
-  
-  with open( filename, 'w' ) as f:
-    f.write( "Accuracy: " + str( score( pred, y_test ) ) + "\n" )
-    f.write( "F1 Score: " + str( metrics.f1_score( pred, y_test ) ) + "\n" )
-    f.write( "Time: " + str( elapsed ) + "\n" )
-    f.write( "Model: \n" )
-    f.write( repr( estim.best_model() ) )
-    f.write( "\nValidation loss at each step\n" )
-    for result in estim.trials.results:
-      try:
-        f.write( str( result['loss'] )+'\n' )
-      except:
-        f.write( "ERROR\n" )
+
+  global suppress_output
+  if not suppress_output:
+    with open( filename, 'w' ) as f:
+      f.write( "Accuracy: " + str( score( pred, y_test ) ) + "\n" )
+      f.write( "F1 Score: " + str( metrics.f1_score( pred, y_test ) ) + "\n" )
+      f.write( "Time: " + str( elapsed ) + "\n" )
+      f.write( "Model: \n" )
+      f.write( repr( estim.best_model() ) )
+      f.write( "\nValidation loss at each step\n" )
+      for result in estim.trials.results:
+        try:
+          f.write( str( result['loss'] )+'\n' )
+        except:
+          f.write( "ERROR\n" )
 
 
 
 def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
-          pre='any', text='' ):
+          loss=None, pre='any', text='' ):
   filename = text + algo + '_' + clf + '_' + pre + '_' + str(seed) + '_' + str(evals) + \
              '_' + data
   
+  if loss is not None:
+    if hasattr( metrics, loss ):
+      loss = getattr( metrics, loss )
+    else:
+      print( 'Unknown loss metric specified' )
+      return 1
+
   if algo == 'tpe':
     algorithm = tpe.suggest
   elif algo == 'anneal':
@@ -298,23 +338,23 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
   if data == 'newsgroups':
     sklearn_newsgroups( classifier=classifier, algorithm=algorithm, 
                         max_evals=evals, seed=seed, filename=filename,
-                        preproc=preproc )
+                        preproc=preproc, loss=loss )
   elif data == 'convex':
     if CONVEX_EXISTS:
       sklearn_convex( classifier=classifier, algorithm=algorithm, 
                       max_evals=evals, seed=seed, filename=filename,
-                      preproc=preproc )
+                      preproc=preproc, loss=loss )
     else:
       print("Convex dataset not detected on your system, install from MLPython")
       return 1
   elif data == 'mnist':
     sklearn_mnist( classifier=classifier, algorithm=algorithm, 
                    max_evals=evals, seed=seed, filename=filename,
-                   preproc=preproc )
+                   preproc=preproc, loss=loss )
   elif data == 'digits':
     sklearn_digits( classifier=classifier, algorithm=algorithm, 
                     max_evals=evals, seed=seed, filename=filename,
-                    preproc=preproc )
+                    preproc=preproc, loss=loss )
   else:
     print( "Unknown dataset specified" )
 
@@ -325,7 +365,7 @@ if __name__ == "__main__":
   #TODO: add preprocessing as an option
   #TODO: add timeout as an option
   parser.add_argument('--data', '-d', dest='data', default='newsgroups',
-                      help='dataset to use, one of: [newsgroups, convex, mnist]')
+                      help='dataset to use, one of: [newsgroups, convex, mnist, digits]')
   parser.add_argument('--algo', '-a', dest='algo', default='rand',
                       help='optimization algorithm to use, one of: [rand, anneal, tpe, tree, gp_tree]')
   parser.add_argument('--clf', '-c', dest='clf', default='any',
@@ -336,10 +376,17 @@ if __name__ == "__main__":
                       help='random seed to use')
   parser.add_argument('--evals', '-e', dest='evals', default=100,
                       help='the number of evaluations in the search space')
+  parser.add_argument('--loss', '-l', dest='loss', default=None,
+                      help='the loss function to use for evaluation')
   parser.add_argument('--text', '-t', dest='text', default='',
                       help='optional text to append to the output file name')
+  parser.add_argument('--nofile', action='store_true',
+                      help='optionally disable output to a file')
   
   args = parser.parse_args()
+ 
+  global suppress_output
+  suppress_output = args.nofile
 
   main( data=args.data, algo=args.algo, clf=args.clf, seed=int(args.seed),
-        evals=int(args.evals), text=args.text, pre=args.pre )
+        evals=int(args.evals), loss=args.loss, text=args.text, pre=args.pre )
