@@ -8,6 +8,8 @@ from hpsklearn.components import any_classifier, any_sparse_classifier, svc, \
                                  standard_scaler, any_preprocessing,\
                                  any_text_preprocessing
 
+import hpsklearn.components
+
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.datasets import fetch_mldata
 from sklearn.datasets import load_digits
@@ -154,7 +156,7 @@ def sklearn_digits( classifier, algorithm, max_evals=100, seed=1,
                               preprocessing=preproc,
                               max_evals=max_evals, trial_timeout=60,
                               fit_increment_dump_filename=dump_file,
-                              loss_fn=loss)
+                              loss_fn=loss, verbose=1)
   
   filename = filename + '.out'
 
@@ -286,7 +288,23 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
     if data in ['newsgroups']:
       classifier = any_sparse_classifier('clf') 
     else:
-      classifier = any_classifier('clf') 
+      classifier = any_classifier('clf')
+  elif clf == 'knn':
+    if data in ['newsgroups']:
+      classifier = knn('clf', sparse_data=True) 
+    else:
+      classifier = knn('clf') 
+  elif clf == 'nearest_centroid':
+    if data in ['newsgroups']:
+      classifier = nearest_centroid('clf', sparse_data=True) 
+    else:
+      classifier = nearest_centroid('clf') 
+  elif hasattr( hpsklearn.components, clf ):
+    classifier = getattr( hpsklearn.components, clf )( 'clf' )
+  else:
+    print( 'Unknown classifier specified' )
+    return 1
+  """
   elif clf == 'svc':
     classifier = svc('clf') 
   elif clf == 'knn':
@@ -316,12 +334,21 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
   else:
     print( 'Unknown classifier specified' )
     return 1
-  
+  """
+
   if pre == 'any':
     if data in ['newsgroups']:
       preproc = any_text_preprocessing('pre')
     else:
       preproc = any_preprocessing('pre')
+  elif pre == 'none':
+    preproc = []
+  elif hasattr( hpsklearn.components, pre ):
+    preproc = [getattr( hpsklearn.components, pre)( 'pre' )]
+  else:
+    print( 'Unknown preprocessing specified' )
+    return 1
+  """
   elif pre == 'pca':
     preproc = [pca('pre')]
   elif pre == 'standard_scaler':
@@ -332,8 +359,7 @@ def main( data='newsgroups', algo='tpe', seed=1, evals=100, clf='any',
     preproc = [normalizer('pre')]
   elif pre == 'tfidf':
     preproc = [tfidf('pre')]
-  elif pre == 'none':
-    preproc = []
+  """
 
   if data == 'newsgroups':
     sklearn_newsgroups( classifier=classifier, algorithm=algorithm, 
