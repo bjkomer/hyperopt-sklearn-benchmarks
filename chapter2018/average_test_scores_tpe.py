@@ -19,6 +19,20 @@ colors = sns.color_palette() #sns.color_palette("hls", 6)
 # Rearrange so a different colour is used for 'any' and the rest are consistent with the percent plot
 colors = [colors[-1]] + colors[0:-1]
 
+colors2 = sns.color_palette("hls", 7)
+# rearrange
+colors2 = [
+    colors2[6],
+    colors2[4],
+    colors2[0],
+    colors2[2],
+    colors2[5],
+    colors2[1],
+    colors2[3],
+]
+
+colors[0] = colors2[0]
+
 sns.set_palette(colors)
 
 #classifiers = ['any', 'svc', 'sgd', 'knn', 'multinomial_nb']
@@ -38,7 +52,10 @@ for i, clf in enumerate(classifiers):
 
 #sns.barplot([newsgroups, mnist, convex])
 #sns.factorplot([newsgroups, mnist, convex])
-sns.factorplot(data=df, x='Dataset', y='Score', hue='Classifier', kind='bar')
+
+#sns.factorplot(data=df, x='Dataset', y='Score', hue='Classifier', kind='bar')
+# Remove the legend for the combined figure
+sns.factorplot(data=df, x='Dataset', y='Score', hue='Classifier', kind='bar', legend=False)
 
 
 plt.yticks(fontsize=14)
@@ -48,6 +65,7 @@ plt.xticks(fontsize=14)
 #plt.xlabel(fontsize=16)
 
 
-plt.title("Average Test Scores", fontsize=20)
+# Remove the title for the combined figure
+#plt.title("Average Test Scores", fontsize=20)
 
 plt.show()

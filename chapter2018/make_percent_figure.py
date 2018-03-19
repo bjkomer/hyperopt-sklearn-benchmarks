@@ -8,6 +8,20 @@ import pandas as pd
 sns.set_style('white')
 
 colors = sns.color_palette() #sns.color_palette("hls", 6)
+#colors = sns.color_palette("hls", 7)
+#colors = colors[1:]
+colors = sns.color_palette("hls", 7)
+# rearrange
+colors = [
+    colors[6],
+    colors[4],
+    colors[0],
+    colors[2],
+    colors[5],
+    colors[1],
+    colors[3],
+]
+colors = colors[1:]
 
 # Pie chart data
 # order is svc, sgd, knn, multinomial_nb, extra_trees, random_forest
@@ -41,9 +55,11 @@ for c in classifiers:
 
 
 # Plot
-bar_width = .8
+#bar_width = .8
+bar_width = .6 # changed for the combined figure
 
-r = [0, 1, 2]
+#r = [0, 1, 2]
+r = [0, .8, 1.6]
 
 fig, ax = plt.subplots() 
 
@@ -55,16 +71,22 @@ plt.bar(r, bars[4], color=colors[4], bottom=[i+j+k+l for i,j,k,l in zip(bars[0],
 plt.bar(r, bars[5], color=colors[5], bottom=[i+j+k+l+m for i,j,k,l,m in zip(bars[0], bars[1], bars[2], bars[3], bars[4])], edgecolor='white', width=bar_width)
 
 #plt.xticks(r, datasets)
-plt.xticks([.4, 1.4, 2.4], datasets, fontsize=14)
-plt.xlabel('Dataset', fontsize=16)
+#plt.xticks([.4, 1.4, 2.4], datasets, fontsize=14)
+#plt.xticks([.3, 1.1, 1.9], datasets, fontsize=14)
+plt.xticks([.3, 1.1, 1.9], datasets, fontsize=22)
+#plt.xlabel('Dataset', fontsize=16)
+plt.xlabel('Dataset', fontsize=22)
 
-plt.yticks(fontsize=14)
-plt.ylabel('Percentage', fontsize=16)
+#plt.yticks(fontsize=14)
+#plt.ylabel('Percentage', fontsize=16)
+plt.yticks(fontsize=20)
+plt.ylabel('Percentage', fontsize=22)
 
-#plt.legend(classifiers, loc='upper right', bbox_to_anchor=(1.25, 1))
-plt.legend(classifiers, loc=(1, .5), fontsize=14)
+# Remove the legend for the combined figure
+#plt.legend(classifiers, loc=(1, .5), fontsize=14)
 
-plt.title("Model Selection Distribution", fontsize=20)
+# Remove the title for the combined figure
+#plt.title("Model Selection Distribution", fontsize=20)
 
 sns.despine()
 plt.show()

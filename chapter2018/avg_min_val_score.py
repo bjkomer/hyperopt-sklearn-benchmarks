@@ -8,7 +8,7 @@ import pandas as pd
 sns.set_style('white')
 
 algo = ['TPE', 'Random'][0]
-use_min = False#True
+use_min = True
 add_trendline = True
 zoom = True
 
